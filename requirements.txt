@@ -1,0 +1,3 @@
+lxml
+requests
+PyQt5
