@@ -1,0 +1,12 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>img/help-browser.png</file>
+    <file>img/document-open.png</file>
+    <file>img/document-save.png</file>
+    <file>img/edit-clear.png</file>
+    <file>img/system-shutdown.png</file>
+    <file>img/window-new.png</file>
+    <file>img/edit-clear.png</file>
+    <file>img/window-new.png</file>
+  </qresource>
+</RCC>

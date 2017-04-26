@@ -3,3 +3,4 @@
 
 THREADS = 1
 TIMEOUT = 5
+DELAY = 1
