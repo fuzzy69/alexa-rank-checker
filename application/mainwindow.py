@@ -24,7 +24,7 @@ from .defaults import DELAY, THREADS, TIMEOUT
 from .helpers import readTextFile
 from .utils import check_alexa, split_list
 from .version import __version__
-from .workers import CheckAlexaWorker
+from .workers import CheckAlexaWorker, MyThread
 
 ui = uic.loadUiType(os.path.join(ROOT, "assets", "ui", "mainwindow.ui"))[0]
 
@@ -66,6 +66,9 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         #     i += 1
         #     if i > 1:
         #         break
+        self.timerPulse = QTimer(self)
+        self.timerPulse.timeout.connect(self.pulse)
+        self.timerPulse.start(1000)
 
     def centerWindow(self):
         fg = self.frameGeometry()
@@ -126,13 +129,29 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         for i in reversed(range(model.rowCount())):
             model.removeRow(i)
 
+    def pulse(self):
+        # print("threads: " +str(MyThread.activeCount))
+        # self.labelActiveThreads.setText("Active threads: {}".format(MyThread.activeCount))
+        if MyThread.activeCount == 0:
+            if not self.sitesTableView.isSortingEnabled():
+                self.sitesTableView.setSortingEnabled(True)
+            if not self.startButton.isEnabled():
+                self.startButton.setEnabled(True)
+            if self.stopButton.isEnabled():
+                self.stopButton.setEnabled(False)
+        else:
+            if self.sitesTableView.isSortingEnabled():
+                self.sitesTableView.setSortingEnabled(False)
+
     @pyqtSlot()
     def start(self):
         model = self.sitesModel
         queues = split_list(range(self.sitesModel.rowCount()), self.threadsSpin.value())
         self._progressTotal = self.sitesModel.rowCount()
+        self._threads = []
+        self._workers = []
         for i, rows in enumerate(queues):
-            self._threads.append(QThread())
+            self._threads.append(MyThread())
             queue = Queue()
             for row in rows:
                 url = model.data(model.index(row, 0))
@@ -147,6 +166,8 @@ class MainWindow(QtWidgets.QMainWindow, ui):
             self._workers[i].finished.connect(self._workers[i].deleteLater)
         for i in range(self.threadsSpin.value()):
             self._threads[i].start()
+        self.startButton.setEnabled(False)
+        self.stopButton.setEnabled(True)
 
     @pyqtSlot()
     def stop(self):
@@ -174,8 +195,7 @@ class MainWindow(QtWidgets.QMainWindow, ui):
     def helpAbout(self):
         QtWidgets.QMessageBox.about(self, "About {}".format(__title__),
             """<b>{} v{}</b>
-            <p>Copyright &copy; 2017 .
-            All rights reserved.
+            <p>All rights reserved.
             <p>{}
             <p>Python {} - Qt {} - PyQt {} on {}""".format(
                 __title__, __version__, __description__,
