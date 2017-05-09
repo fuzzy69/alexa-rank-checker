@@ -7,6 +7,22 @@ from PyQt5.QtCore import QThread, pyqtSlot, pyqtSignal, QObject
 
 from .utils import check_alexa
 
+class MyThread(QThread):
+    activeCount = 0
+
+    def __init__(self, parent=None):
+        super(QThread, self).__init__()
+        self.started.connect(self.increaseActiveThreads)
+        self.finished.connect(self.decreaseActiveThreads)
+
+    @pyqtSlot()
+    def increaseActiveThreads(self):
+        MyThread.activeCount += 1
+
+    @pyqtSlot()
+    def decreaseActiveThreads(self):
+        MyThread.activeCount -= 1
+
 class Worker(QObject):
     start = pyqtSignal()
     stop = pyqtSignal()
