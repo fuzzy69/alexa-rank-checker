@@ -15,6 +15,7 @@ if __name__ == "__main__":
     app.setOrganizationName(__author__)
     app.setOrganizationDomain("fuzzy69.com")
     app.setApplicationName(__title__)
+    app.setStyleSheet("QStatusBar::item { border: 0px solid black };")
     mainWindow = MainWindow()
     mainWindow.show()
     app.exec_()

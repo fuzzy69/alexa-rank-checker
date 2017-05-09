@@ -38,11 +38,8 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         self._workers = []
         self._progressDone = 0
         self._progressTotal = 0
-        # self.searchModel = QStandardItemModel(self)
-        # self.searchEdit = QtWidgets.QLineEdit()
-        # self.searchEdit.setPlaceholderText("Search urls ...")
-        # self.searchEdit.setClearButtonEnabled(True)
-        # self.toolBar.addWidget(self.searchEdit)
+        self.labelActiveThreads = QtWidgets.QLabel("Active threads: 0")
+        self.statusbar.addPermanentWidget(self.labelActiveThreads)
         self.sitesModel = QStandardItemModel()
         self.sitesModel.setHorizontalHeaderLabels(["URL", "Rank", "Status"])
         self.sitesTableView.setModel(self.sitesModel)
@@ -59,13 +56,6 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         self.showEvent = self.onShow
         self.loadSettings()
         self.centerWindow()
-        # text = readTextFile("data/sites.txt")
-        # i = 0
-        # for url in text.strip().splitlines():
-        #     self.sitesModel.appendRow([QStandardItem(url), QStandardItem(""),QStandardItem("")])
-        #     i += 1
-        #     if i > 1:
-        #         break
         self.timerPulse = QTimer(self)
         self.timerPulse.timeout.connect(self.pulse)
         self.timerPulse.start(1000)
@@ -130,18 +120,17 @@ class MainWindow(QtWidgets.QMainWindow, ui):
             model.removeRow(i)
 
     def pulse(self):
-        # print("threads: " +str(MyThread.activeCount))
-        # self.labelActiveThreads.setText("Active threads: {}".format(MyThread.activeCount))
-        if MyThread.activeCount == 0:
-            if not self.sitesTableView.isSortingEnabled():
-                self.sitesTableView.setSortingEnabled(True)
-            if not self.startButton.isEnabled():
-                self.startButton.setEnabled(True)
-            if self.stopButton.isEnabled():
-                self.stopButton.setEnabled(False)
-        else:
-            if self.sitesTableView.isSortingEnabled():
-                self.sitesTableView.setSortingEnabled(False)
+        self.labelActiveThreads.setText("Active threads: {}".format(MyThread.activeCount))
+        # if MyThread.activeCount == 0:
+        #     if not self.sitesTableView.isSortingEnabled():
+        #         self.sitesTableView.setSortingEnabled(True)
+        #     if not self.startButton.isEnabled():
+        #         self.startButton.setEnabled(True)
+        #     if self.stopButton.isEnabled():
+        #         self.stopButton.setEnabled(False)
+        # else:
+        #     if self.sitesTableView.isSortingEnabled():
+        #         self.sitesTableView.setSortingEnabled(False)
 
     @pyqtSlot()
     def start(self):
