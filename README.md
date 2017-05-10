@@ -4,6 +4,10 @@
 
 PyQt5 application for checking Alexa rank for multiple web sites.
 
+### Screenshot
+
+![Screenshot](_/screenshot.gif)
+
 ### Requirements
 
 Application is tested using Python 3.5.2 version.
