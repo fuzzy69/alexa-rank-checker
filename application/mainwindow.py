@@ -59,6 +59,8 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         self.timerPulse = QTimer(self)
         self.timerPulse.timeout.connect(self.pulse)
         self.timerPulse.start(1000)
+        self._boldFont = QFont()
+        self._boldFont.setBold(True)
 
     def centerWindow(self):
         fg = self.frameGeometry()
@@ -104,13 +106,21 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         if filePath:
             text = readTextFile(filePath)
             for url in text.strip().splitlines():
-                self.sitesModel.appendRow([QStandardItem(url), QStandardItem(""),QStandardItem("")])
+                rankCell = QStandardItem("")
+                rankCell.setTextAlignment(Qt.AlignCenter)
+                self.sitesModel.appendRow([QStandardItem(url), rankCell,QStandardItem("")])
 
     def sitesTableView_doubleClicked(self, modelIndex):
         model = self.sitesModel
         row = modelIndex.row()
         url = model.data(model.index(row, 0))
         webbrowser.open(url)
+
+    def resetTable(self):
+        model = self.sitesModel
+        for i in range(model.rowCount()):
+            model.setData(model.index(i, 1), "")
+            model.setData(model.index(i, 2), "")
 
     def clearTable(self):
         self.tableRemoveAllRows(self.sitesModel)
@@ -121,22 +131,24 @@ class MainWindow(QtWidgets.QMainWindow, ui):
 
     def pulse(self):
         self.labelActiveThreads.setText("Active threads: {}".format(MyThread.activeCount))
-        # if MyThread.activeCount == 0:
-        #     if not self.sitesTableView.isSortingEnabled():
-        #         self.sitesTableView.setSortingEnabled(True)
-        #     if not self.startButton.isEnabled():
-        #         self.startButton.setEnabled(True)
-        #     if self.stopButton.isEnabled():
-        #         self.stopButton.setEnabled(False)
+        if MyThread.activeCount == 0:
+            # if not self.sitesTableView.isSortingEnabled():
+                # self.sitesTableView.setSortingEnabled(True)
+            if not self.startButton.isEnabled():
+                self.startButton.setEnabled(True)
+            if self.stopButton.isEnabled():
+                self.stopButton.setEnabled(False)
         # else:
         #     if self.sitesTableView.isSortingEnabled():
         #         self.sitesTableView.setSortingEnabled(False)
 
     @pyqtSlot()
     def start(self):
+        self.resetTable()
         model = self.sitesModel
         queues = split_list(range(self.sitesModel.rowCount()), self.threadsSpin.value())
         self._progressTotal = self.sitesModel.rowCount()
+        self._progressDone = 0
         self._threads = []
         self._workers = []
         for i, rows in enumerate(queues):
@@ -170,14 +182,15 @@ class MainWindow(QtWidgets.QMainWindow, ui):
 
     @pyqtSlot(object)
     def onResult(self, result):
+        self.sitesModel.item(result["row"], 1).setFont(self._boldFont)
         if result["status"]:
             self.sitesModel.setData(self.sitesModel.index(result["row"], 1), result["rank"])
-            self.sitesModel.item(result["row"], 1).setBackground(Qt.green)
+            self.sitesModel.item(result["row"], 1).setForeground(Qt.green)
         elif result["status"] is None:
             self.sitesModel.setData(self.sitesModel.index(result["row"], 1), "No data")
         else:
             self.sitesModel.setData(self.sitesModel.index(result["row"], 1), "Fail")
-            self.sitesModel.item(result["row"], 1).setBackground(Qt.red)
+            self.sitesModel.item(result["row"], 1).setForeground(Qt.red)
         self._progressDone += 1
         self.progressBar.setValue(int(float(self._progressDone) / self._progressTotal * 100))
 
