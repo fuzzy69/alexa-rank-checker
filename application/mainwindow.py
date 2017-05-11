@@ -3,6 +3,7 @@
 
 import csv
 import json
+import operator
 import os
 import platform
 import webbrowser
@@ -28,6 +29,8 @@ from .workers import CheckAlexaWorker, MyThread
 
 ui = uic.loadUiType(os.path.join(ROOT, "assets", "ui", "mainwindow.ui"))[0]
 
+MAX_RECENT_FILES = 10
+
 class MainWindow(QtWidgets.QMainWindow, ui):
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
@@ -38,6 +41,8 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         self._workers = []
         self._progressDone = 0
         self._progressTotal = 0
+        self._recentFiles = []
+        self._recentFilesActions = []
         self.labelActiveThreads = QtWidgets.QLabel("Active threads: 0")
         self.statusbar.addPermanentWidget(self.labelActiveThreads)
         self.sitesModel = QStandardItemModel()
@@ -48,6 +53,7 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         self.actionAbout.triggered.connect(self.helpAbout)
         self.actionImport_URLs.triggered.connect(self.importUrls)
         self.actionClear_table.triggered.connect(self.clearTable)
+        self.actionClear_Recent_Files.triggered.connect(self.clearRecentFiles)
         self.sitesTableView.doubleClicked.connect(self.sitesTableView_doubleClicked)
         self.startButton.clicked.connect(self.start)
         self.stopButton.clicked.connect(self.stop)
@@ -61,6 +67,19 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         self.timerPulse.start(1000)
         self._boldFont = QFont()
         self._boldFont.setBold(True)
+        for i in range(MAX_RECENT_FILES):
+            self._recentFilesActions.append(QtWidgets.QAction(self))
+            self._recentFilesActions[i].triggered.connect(self.openRecentFile)
+            if i < len(self._recentFiles):
+                if not self.actionClear_Recent_Files.isEnabled():
+                    self.actionClear_Recent_Files.setEnabled(True)
+                self._recentFilesActions[i].setData(self._recentFiles[i])
+                self._recentFilesActions[i].setText(self._recentFiles[i])
+                self._recentFilesActions[i].setVisible(True)
+            else:
+                self._recentFilesActions[i].setVisible(False)
+            self.menuRecent_Files.addAction(self._recentFilesActions[i])
+        self.updateRecentFilesActions()
 
     def centerWindow(self):
         fg = self.frameGeometry()
@@ -109,6 +128,7 @@ class MainWindow(QtWidgets.QMainWindow, ui):
                 rankCell = QStandardItem("")
                 rankCell.setTextAlignment(Qt.AlignCenter)
                 self.sitesModel.appendRow([QStandardItem(url), rankCell,QStandardItem("")])
+            self.updateRecentFiles(filePath)
 
     def sitesTableView_doubleClicked(self, modelIndex):
         model = self.sitesModel
@@ -141,6 +161,38 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         # else:
         #     if self.sitesTableView.isSortingEnabled():
         #         self.sitesTableView.setSortingEnabled(False)
+
+    def updateRecentFiles(self, filePath):
+        if filePath not in self._recentFiles:
+            self._recentFiles.insert(0, filePath)
+        if len(self._recentFiles) > MAX_RECENT_FILES:
+            self._recentFiles.pop()
+        self.updateRecentFilesActions()
+        if not self.actionClear_Recent_Files.isEnabled():
+            self.actionClear_Recent_Files.setEnabled(True)
+
+    def updateRecentFilesActions(self):
+        for i in range(MAX_RECENT_FILES):
+            if i < len(self._recentFiles):
+                self._recentFilesActions[i].setText(self._recentFiles[i])
+                self._recentFilesActions[i].setData(self._recentFiles[i])
+                self._recentFilesActions[i].setVisible(True)
+            else:
+                self._recentFilesActions[i].setVisible(False)
+
+    def openRecentFile(self):
+        filePath = str(self.sender().data())
+        if os.path.exists(filePath):
+            text = readTextFile(filePath)
+            for url in text.strip().splitlines():
+                rankCell = QStandardItem("")
+                rankCell.setTextAlignment(Qt.AlignCenter)
+                self.sitesModel.appendRow([QStandardItem(url), rankCell,QStandardItem("")])
+
+    def clearRecentFiles(self):
+        self._recentFiles = []
+        self.updateRecentFilesActions()
+        self.actionClear_Recent_Files.setEnabled(False)
 
     @pyqtSlot()
     def start(self):
