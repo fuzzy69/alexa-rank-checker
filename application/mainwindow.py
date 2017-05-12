@@ -29,7 +29,7 @@ from .workers import CheckAlexaWorker, MyThread
 
 ui = uic.loadUiType(os.path.join(ROOT, "assets", "ui", "mainwindow.ui"))[0]
 
-MAX_RECENT_FILES = 10
+MAX_RECENT_FILES = 5
 
 class MainWindow(QtWidgets.QMainWindow, ui):
     def __init__(self, parent=None):
@@ -95,6 +95,7 @@ class MainWindow(QtWidgets.QMainWindow, ui):
             # self._tableViewWidth = int(settings.value("tableViewWidth", ''))
             self.threadsSpin.setValue(settings.value("threadsCount", THREADS, type=int))
             self.timeoutSpin.setValue(settings.value("timeoutSpin", TIMEOUT, type=int))
+            self._recentFiles = settings.value("recentFiles", [], type=str)
 
     def saveSettings(self):
         settings = QSettings(self._settingsFile, QSettings.IniFormat)
@@ -103,6 +104,7 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         # settings.setValue("tableViewWidth", self.sitesTableView.frameGeometry().width())
         settings.setValue("threadsCount", self.threadsSpin.value())
         settings.setValue("timeout", self.timeoutSpin.value())
+        settings.setValue("recentFiles", self._recentFiles)
 
     def onResize(self, event):
         self.resizeTableColumns()
