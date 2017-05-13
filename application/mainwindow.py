@@ -43,6 +43,7 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         self._progressTotal = 0
         self._recentFiles = []
         self._recentFilesActions = []
+        self._urls = []
         self.labelActiveThreads = QtWidgets.QLabel("Active threads: 0")
         self.statusbar.addPermanentWidget(self.labelActiveThreads)
         self.sitesModel = QStandardItemModel()
@@ -127,6 +128,9 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         if filePath:
             text = readTextFile(filePath)
             for url in text.strip().splitlines():
+                if url in self._urls:
+                    continue
+                self._urls.append(url)
                 rankCell = QStandardItem("")
                 rankCell.setTextAlignment(Qt.AlignCenter)
                 self.sitesModel.appendRow([QStandardItem(url), rankCell,QStandardItem("")])
@@ -146,6 +150,7 @@ class MainWindow(QtWidgets.QMainWindow, ui):
 
     def clearTable(self):
         self.tableRemoveAllRows(self.sitesModel)
+        self._urls = []
 
     def tableRemoveAllRows(self, model):
         for i in reversed(range(model.rowCount())):
@@ -187,6 +192,9 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         if os.path.exists(filePath):
             text = readTextFile(filePath)
             for url in text.strip().splitlines():
+                if url in self._urls:
+                    continue
+                self._urls.append(url)
                 rankCell = QStandardItem("")
                 rankCell.setTextAlignment(Qt.AlignCenter)
                 self.sitesModel.appendRow([QStandardItem(url), rankCell,QStandardItem("")])
