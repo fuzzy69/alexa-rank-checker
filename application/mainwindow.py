@@ -126,14 +126,7 @@ class MainWindow(QtWidgets.QMainWindow, ui):
     def importUrls(self):
         filePath, fileType = QtWidgets.QFileDialog.getOpenFileName(self, "Import URLs", filter="Text files (*.txt)")
         if filePath:
-            text = readTextFile(filePath)
-            for url in text.strip().splitlines():
-                if url in self._urls:
-                    continue
-                self._urls.append(url)
-                rankCell = QStandardItem("")
-                rankCell.setTextAlignment(Qt.AlignCenter)
-                self.sitesModel.appendRow([QStandardItem(url), rankCell,QStandardItem("")])
+            self.importDataFromFile(filePath)
             self.updateRecentFiles(filePath)
 
     def sitesTableView_doubleClicked(self, modelIndex):
@@ -189,6 +182,9 @@ class MainWindow(QtWidgets.QMainWindow, ui):
 
     def openRecentFile(self):
         filePath = str(self.sender().data())
+        self.importDataFromFile(filePath)
+
+    def importDataFromFile(self, filePath):
         if os.path.exists(filePath):
             text = readTextFile(filePath)
             for url in text.strip().splitlines():
