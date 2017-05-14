@@ -1,10 +1,9 @@
 # -*- coding: UTF-8 -*-
 # !/usr/bin/env python
 
-import os
 import sys
 
-from PyQt5 import uic, QtWidgets
+from PyQt5 import QtWidgets
 
 from application.mainwindow import MainWindow
 from application.conf import __author__, __title__

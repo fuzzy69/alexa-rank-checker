@@ -1,14 +1,14 @@
 # -*- coding: UTF-8 -*-
 #!/usr/bin/env python
 
-from time import sleep
-from urllib.parse import urljoin, urlparse
+#from time import sleep
+from urllib.parse import urlparse
 
 from lxml import etree
 import requests
 
-from .conf import HEADERS
-from .defaults import TIMEOUT
+from application.conf import HEADERS
+from application.defaults import TIMEOUT
 
 def check_alexa(url, timeout=TIMEOUT):
     rank = None
@@ -34,9 +34,48 @@ def check_alexa(url, timeout=TIMEOUT):
     return rank, status, msg
 
 def extract_domain(url):
+    """
+    Extracts domain from url
+
+    Parameters
+    ----------
+    url : str
+        Full url address
+
+    Returns
+    -------
+    str
+        Url domain
+
+    Examples
+    --------
+    >>> extract_domain("https://www.python.org/about/")
+    'www.python.org'
+    """
     return urlparse(url).netloc
 
 def split_list(li, n):
+    """
+    Split list into n lists
+
+    Parameters
+    ----------
+    li : list
+        List to split
+
+    n : int
+        Split count
+
+    Returns
+    -------
+    list
+        List of n lists
+
+    Examples
+    --------
+    >>> split_list([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3)
+    [[1, 2, 3, 4], [5, 6, 7], [8, 9, 10]]
+    """
     k, m = divmod(len(li), n)
 
-    return (li[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
+    return [li[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)]
