@@ -11,6 +11,27 @@ from application.conf import HEADERS
 from application.defaults import TIMEOUT
 
 def check_alexa(url, timeout=TIMEOUT):
+    """
+    Returns Alexa rank of given web site url
+
+    Parameters
+    ----------
+    url : str
+        Web site url
+
+    timeout : int
+        Abort checking after [timeout] seconds
+
+    Returns
+    -------
+    (str, bool, str)
+        Rank, operation status (None/True/False), additional message
+
+    Examples
+    --------
+    >>> check_alexa("https://www.google.com/")
+    ('1', True, '')
+    """
     rank = None
     status = None
     msg = ''

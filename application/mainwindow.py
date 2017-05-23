@@ -3,7 +3,7 @@
 
 import csv
 import json
-import operator
+#import operator
 import os
 import platform
 import webbrowser
@@ -29,7 +29,7 @@ from .workers import CheckAlexaWorker, MyThread
 
 ui = uic.loadUiType(os.path.join(ROOT, "assets", "ui", "mainwindow.ui"))[0]
 
-MAX_RECENT_FILES = 5
+MAX_RECENT_FILES = 10
 
 class MainWindow(QtWidgets.QMainWindow, ui):
     def __init__(self, parent=None):
@@ -49,6 +49,7 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         self.sitesModel = QStandardItemModel()
         self.sitesModel.setHorizontalHeaderLabels(["URL", "Rank", "Status"])
         self.sitesTableView.setModel(self.sitesModel)
+        # Connections
         self.actionExport_results.triggered.connect(self.exportResults)
         self.actionQuit.triggered.connect(lambda: QtWidgets.QApplication.quit())
         self.actionAbout.triggered.connect(self.helpAbout)
@@ -58,11 +59,14 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         self.sitesTableView.doubleClicked.connect(self.sitesTableView_doubleClicked)
         self.startButton.clicked.connect(self.start)
         self.stopButton.clicked.connect(self.stop)
+        # Events
         self.resizeEvent = self.onResize
         self.closeEvent = self.onClose
         self.showEvent = self.onShow
+        # Startup
         self.loadSettings()
         self.centerWindow()
+        #
         self.timerPulse = QTimer(self)
         self.timerPulse.timeout.connect(self.pulse)
         self.timerPulse.start(1000)
@@ -83,6 +87,9 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         self.updateRecentFilesActions()
 
     def centerWindow(self):
+        """
+        Move the window to center of screen
+        """
         fg = self.frameGeometry()
         c = QtWidgets.QDesktopWidget().availableGeometry().center()
         fg.moveCenter(c)
@@ -120,6 +127,9 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         QtWidgets.QMainWindow.showEvent(self, event)
 
     def resizeTableColumns(self):
+        """
+        Proportionally resize table columns
+        """
         self.sitesTableView.setColumnWidth(0, int(self.sitesTableView.frameGeometry().width() * 0.6))
         self.sitesTableView.setColumnWidth(1, int(self.sitesTableView.frameGeometry().width() * 0.1))
 
@@ -130,6 +140,9 @@ class MainWindow(QtWidgets.QMainWindow, ui):
             self.updateRecentFiles(filePath)
 
     def sitesTableView_doubleClicked(self, modelIndex):
+        """
+        Open url in default browser when row is double clicked
+        """
         model = self.sitesModel
         row = modelIndex.row()
         url = model.data(model.index(row, 0))
@@ -150,6 +163,9 @@ class MainWindow(QtWidgets.QMainWindow, ui):
             model.removeRow(i)
 
     def pulse(self):
+        """
+        Periodically update gui with usefull info
+        """
         self.labelActiveThreads.setText("Active threads: {}".format(MyThread.activeCount))
         if MyThread.activeCount == 0:
             # if not self.sitesTableView.isSortingEnabled():
@@ -240,6 +256,9 @@ class MainWindow(QtWidgets.QMainWindow, ui):
 
     @pyqtSlot(object)
     def onResult(self, result):
+        """
+        Update Rank and Status column in table/model
+        """
         self.sitesModel.item(result["row"], 1).setFont(self._boldFont)
         if result["status"]:
             self.sitesModel.setData(self.sitesModel.index(result["row"], 1), result["rank"])
@@ -255,7 +274,6 @@ class MainWindow(QtWidgets.QMainWindow, ui):
     def helpAbout(self):
         QtWidgets.QMessageBox.about(self, "About {}".format(__title__),
             """<b>{} v{}</b>
-            <p>All rights reserved.
             <p>{}
             <p>Python {} - Qt {} - PyQt {} on {}""".format(
                 __title__, __version__, __description__,
@@ -264,6 +282,9 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         )
 
     def exportResults(self):
+        """
+        Export table/model data to csv or json file on disk drive
+        """
         filePath, fileType = QtWidgets.QFileDialog.getSaveFileName(self, "Export results", "/mnt/ramdisk/results", filter="CSV files (*.csv);;JSON files (*.json)")
         data = []
         model = self.sitesModel
