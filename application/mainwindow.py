@@ -285,7 +285,6 @@ class MainWindow(QtWidgets.QMainWindow, ui):
         """
         Export table/model data to csv or json file on disk drive
         """
-        filePath, fileType = QtWidgets.QFileDialog.getSaveFileName(self, "Export results", "/mnt/ramdisk/results", filter="CSV files (*.csv);;JSON files (*.json)")
         data = []
         model = self.sitesModel
         for i in range(model.rowCount()):
@@ -295,11 +294,21 @@ class MainWindow(QtWidgets.QMainWindow, ui):
                 "URL": url,
                 "Rank": rank,
             })
-        if "csv" in fileType:
-            with open(filePath + ".csv", 'w') as f:
-                w = csv.DictWriter(f, ["URL", "Rank"])
-                w.writeheader()
-                w.writerows(data)
-        else:
-            with open(filePath + ".json", 'w') as f:
-                f.write(json.dumps(data))
+        if not data:
+            return
+        filePath, fileType = QtWidgets.QFileDialog.getSaveFileName(self, "Export results", "/mnt/ramdisk/results", filter="CSV files (*.csv);;JSON files (*.json)")
+        try:
+            if "csv" in fileType:
+                ft = "csv"
+                with open(filePath + ".csv", 'w') as f:
+                    w = csv.DictWriter(f, ["URL", "Rank"])
+                    w.writeheader()
+                    w.writerows(data)
+            else:
+                ft = "json"
+                with open(filePath + ".json", 'w') as f:
+                    f.write(json.dumps(data))
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, "Error", str(e))
+            return
+        QtWidgets.QMessageBox.information(self, "Info", "Successfully exported results to {}".format(filePath + "." + ft))
